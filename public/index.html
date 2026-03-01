@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Infinite Auction</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;900&display=swap" rel="stylesheet">
+    <script src="audio.js"></script>
+</head>
+
+<body>
+    <div id="particles"></div>
+    <div id="lobby" class="screen active">
+        <h1 class="title glow-red">INFINITE AUCTION</h1>
+        <div class="lobby-controls">
+            <div style="margin-top: 30px;">
+                <input type="text" id="playerName" placeholder="Enter Your Name..." maxlength="15" autocomplete="off"
+                    class="input-field" style="margin-bottom: 20px;">
+
+                <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                    <input type="text" id="customRoomCode" placeholder="Custom Code (Optional)" maxlength="6"
+                        autocomplete="off" class="input-field" style="text-transform: uppercase;">
+                    <button id="createRoomBtn" class="btn primary">Create Room</button>
+                </div>
+
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="roomCode" placeholder="Enter Room Code..." maxlength="6" autocomplete="off"
+                        class="input-field" style="text-transform: uppercase;">
+                    <button id="joinRoomBtn" class="btn secondary">Join</button>
+                </div>
+            </div>
+        </div>
+        <div id="lobbyWaiting" class="hidden">
+            <h2>Room: <span id="displayRoomCode"></span></h2>
+            <div class="player-list-lobby" id="lobbyPlayerList"></div>
+
+            <div id="hostLobbySettings" class="hidden" style="margin-top: 15px; text-align: left;">
+                <div style="margin-bottom: 15px;">
+                    <label for="maxRoundsSelect" style="color: var(--text-secondary); font-size: 0.9rem;">Total
+                        Rounds:</label>
+                    <select id="maxRoundsSelect"
+                        style="width: 100%; padding: 10px; margin-top: 5px; background: var(--surface); color: var(--text-primary); border: 1px solid var(--border); border-radius: 6px;">
+                        <option value="4">4 Rounds (1 Cycle)</option>
+                        <option value="8">8 Rounds (2 Cycles)</option>
+                        <option value="12" selected>12 Rounds (3 Cycles)</option>
+                        <option value="16">16 Rounds (4 Cycles)</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="roundTimeSelect" style="color: var(--text-secondary); font-size: 0.9rem;">Round
+                        Timer:</label>
+                    <select id="roundTimeSelect"
+                        style="width: 100%; padding: 10px; margin-top: 5px; background: var(--surface); color: var(--text-primary); border: 1px solid var(--border); border-radius: 6px;">
+                        <option value="60" selected>60 Seconds</option>
+                        <option value="120">120 Seconds</option>
+                        <option value="180">180 Seconds</option>
+                    </select>
+                </div>
+            </div>
+
+            <button id="startGameBtn" class="btn primary hidden" style="margin-top: 15px;">Start Game</button>
+            <button id="leaveLobbyBtn" class="btn secondary" style="margin-top: 10px;">Leave Room</button>
+            <p id="waitingMessage">Waiting for host to start...</p>
+        </div>
+    </div>
+
+    <div id="gameUI" class="screen hidden">
+        <header class="header">
+            <div class="room-info">Room: <span id="gameRoomCode"></span></div>
+            <div class="gem-display">Gem: <span id="gemValue" class="glitch-text">+0</span></div>
+            <div class="timer" id="timer">--</div>
+            <div id="hostControls" class="hidden">
+                <button id="endRoundBtn" class="btn-small danger" title="End Round Early">⏹</button>
+            </div>
+            <div>
+                <button id="leaveGameBtn" class="btn-small danger" title="Leave Game">Exit</button>
+            </div>
+        </header>
+
+        <main class="game-container">
+            <section class="arena">
+                <h3>The Arena</h3>
+                <ul id="arenaPlayerList" class="player-status-list">
+                    <!-- Dynamic Players injected here -->
+                </ul>
+            </section>
+
+            <section class="dashboard">
+                <div class="stats-bar">
+                    <div class="stat-box">Points <span id="myPoints" class="stat-value">0</span></div>
+                    <div class="stat-box spent">Spent <span id="mySpent" class="stat-value">0</span></div>
+                </div>
+
+                <div class="bid-section">
+                    <input type="number" id="bidInput" class="bid-input" placeholder="0" min="0">
+                    <button id="placeBidBtn" class="btn submit-bid">SUBMIT BID</button>
+                </div>
+                <div id="bidStatusMsg" class="bid-status hidden">Bid Placed. Waiting for others...</div>
+            </section>
+
+            <section class="leaderboard">
+                <h3>Leaderboard</h3>
+                <ul id="leaderboardList" class="rank-list">
+                    <!-- Dynamic Leaderboard (Points only) injected here -->
+                </ul>
+            </section>
+        </main>
+    </div>
+
+    <div id="endGameUI" class="screen hidden" style="align-items: center; justify-content: center; padding: 20px;">
+        <h1 class="title glow-red">THE PUNCH</h1>
+        <h2 id="winnerText" style="font-size: 2rem; margin-bottom: 20px; color: var(--success);" class="hidden">Winner!
+        </h2>
+
+        <div class="endgame-board">
+            <div
+                style="display: flex; justify-content: space-between; padding-bottom: 10px; border-bottom: 1px solid var(--border); font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase;">
+                <span>Player</span>
+                <span>Points</span>
+                <span>Spent</span>
+            </div>
+            <ul id="endGameList" class="rank-list" style="margin-top: 10px;">
+                <!-- End game animations injected here -->
+            </ul>
+        </div>
+
+        <button id="returnToLobbyBtn" class="btn secondary" style="margin-top: 30px; max-width: 300px;">Return to Main
+            Menu</button>
+    </div>
+
+    <div id="overlay" class="overlay hidden">
+        <div class="overlay-content">
+            <h2 id="overlayTitle">Event</h2>
+            <p id="overlayMessage">Message goes here.</p>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="client.js"></script>
+</body>
+
+</html>
