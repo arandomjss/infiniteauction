@@ -137,6 +137,141 @@
         </div>
     </div>
 
+    <!-- Tabbed Rules Modal -->
+    <div id="rulesModal" class="rules-modal hidden" aria-hidden="true" role="dialog" aria-modal="true">
+        <div class="rules-content">
+            <div class="rules-header">
+                <h2>Game Rules</h2>
+                <div class="rules-controls">
+                    <select id="rulesSelect" class="rules-select" aria-label="Select rules section">
+                        <option value="quick">Quick</option>
+                        <option value="overview">Overview</option>
+                        <option value="scoring">Scoring</option>
+                        <option value="bids">Bids & Ties</option>
+                        <option value="bankrupt">Bankruptcies</option>
+                        <option value="gravity">Gravity Check</option>
+                        <option value="punch">The Punch</option>
+                        <option value="spectators">Spectators</option>
+                        <option value="host">Host</option>
+                        <option value="example">Example</option>
+                    </select>
+                    <button id="rulesQuickToggle" class="rule-toggle active" aria-pressed="true">Quick</button>
+                    <button id="rulesFullToggle" class="rule-toggle" aria-pressed="false">Full</button>
+                    <button id="closeRulesBtn" class="rules-close" aria-label="Close rules">&times;</button>
+                </div>
+            </div>
+            <div id="rulesDragHandle" class="drag-handle" aria-hidden="true"></div>
+            <nav class="rules-tabs" role="tablist" aria-label="Rules sections">
+                <button class="rules-tab active" data-tab="quick" role="tab" aria-selected="true">Quick</button>
+                <button class="rules-tab" data-tab="overview" role="tab">Overview</button>
+                <button class="rules-tab" data-tab="scoring" role="tab">Scoring</button>
+                <button class="rules-tab" data-tab="bids" role="tab">Bids & Ties</button>
+                <button class="rules-tab" data-tab="bankrupt" role="tab">Bankruptcies</button>
+                <button class="rules-tab" data-tab="gravity" role="tab">Gravity Check</button>
+                <button class="rules-tab" data-tab="punch" role="tab">The Punch</button>
+                <button class="rules-tab" data-tab="spectators" role="tab">Spectators</button>
+                <button class="rules-tab" data-tab="host" role="tab">Host</button>
+                <button class="rules-tab" data-tab="example" role="tab">Example</button>
+            </nav>
+            <div class="rules-body">
+                <section id="tab-quick" class="rules-section">
+                    <ul>
+                        <li>Gem shown each round: +1 to +4.</li>
+                        <li>Submit one integer bid (≥ 0) per round.</li>
+                        <li>Highest single bidder wins gem points; highest tie cancels gem but tied players still pay.</li>
+                        <li>Lowest bidder(s) lose 1 point each.</li>
+                        <li>Gravity Check every 4 rounds shows recent winning spend.</li>
+                        <li>Final (The Punch): highest spender(s) eliminated; highest points among survivors wins.</li>
+                    </ul>
+                </section>
+                <section id="tab-overview" class="rules-section hidden">
+                    <h3>Round flow</h3>
+                    <ol>
+                        <li>Host starts the game (or next round automatically starts).</li>
+                        <li>A gem value is displayed and the timer begins.</li>
+                        <li>Active players place a single bid. If you don't bid before timer expires, your bid becomes 0.</li>
+                        <li>When all active players have bid or timer hits zero, bids are processed and results are shown.</li>
+                    </ol>
+                </section>
+                <section id="tab-scoring" class="rules-section hidden">
+                    <h3>Points & Spend</h3>
+                    <ul>
+                        <li>Winner gains +gemValue points and pays their bid (added to totalSpent).</li>
+                        <li>Lowest bidder(s) lose 1 point.</li>
+                        <li>High tie: no points awarded; tied players still pay.</li>
+                        <li>Points public; totalSpent private per-round, revealed at The Punch.</li>
+                    </ul>
+                </section>
+                <section id="tab-bids" class="rules-section hidden">
+                    <h3>Bids & Ties</h3>
+                    <ul>
+                        <li>One bid per round; integers ≥ 0.</li>
+                        <li>No bid before timer → bid = 0.</li>
+                        <li>Highest tie cancels the gem; tied players still pay their full bids.</li>
+                        <li>Gravity pool increases by winner's bid (or highestBid × #tiedWinners on tie).</li>
+                    </ul>
+                </section>
+                <section id="tab-bankrupt" class="rules-section hidden">
+                    <h3>Bankruptcies</h3>
+                    <ol>
+                        <li>The player(s) with the largest <em>totalSpent</em> among active players are marked bankrupt and eliminated.</li>
+                        <li>Bankrupted players cannot participate in further rounds and are shown as eliminated.</li>
+                        <li>If everyone is bankrupted there is no winner.</li>
+                    </ol>
+                </section>
+                <section id="tab-gravity" class="rules-section hidden">
+                    <h3>Gravity Check</h3>
+                    <ol>
+                        <li>Triggered every 4 rounds.</li>
+                        <li>Displays total winning spend from the previous 4 rounds.</li>
+                        <li>Informational only; pool resets after display.</li>
+                    </ol>
+                </section>
+                <section id="tab-punch" class="rules-section hidden">
+                    <h3>The Punch (final reveal)</h3>
+                    <ol>
+                        <li>After the last round, players with the highest `totalSpent` become bankrupted (eliminated).</li>
+                        <li>Remaining players are compared by points; highest points wins.</li>
+                        <li>All players' `totalSpent` values are revealed publicly at this time.</li>
+                    </ol>
+                </section>
+                <section id="tab-spectators" class="rules-section hidden">
+                    <h3>Spectators</h3>
+                    <ol>
+                        <li>Joining mid-game marks you as a spectator for the current round.</li>
+                        <li>Spectators cannot bid during that round.</li>
+                        <li>Spectators may participate starting the next round if not bankrupted.</li>
+                    </ol>
+                </section>
+                <section id="tab-host" class="rules-section hidden">
+                    <h3>Host Actions</h3>
+                    <ul>
+                        <li>Set `Total Rounds` and `Round Timer` before starting.</li>
+                        <li>Start the game and end the current round early if needed.</li>
+                        <li>Host disconnect → next connected player is promoted to host.</li>
+                    </ul>
+                </section>
+                <section id="tab-example" class="rules-section hidden">
+                    <h3>Example Round</h3>
+                    <ul>
+                        <li>Players: Alice, Bob, Carol, Dave.</li>
+                        <li>Gem: +3.</li>
+                        <li>Alice bids $10, Bob bids $10, Carol bids $2, Dave doesn't bid (0).</li>
+                        <li>Highest tie (Alice &amp; Bob): gem is cancelled; both pay $10 (added to their <em>totalSpent</em>).</li>
+                        <li>Lowest bidder (Dave) loses 1 point for bidding 0.</li>
+                        <li>Gravity pool gains $20 (10×2) for this round.</li>
+                    </ul>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Rules Button -->
+    <button id="rulesBtn" class="rules-btn" title="Game Rules">?</button>
+
+    <!-- Floating Music Toggle -->
+    <button id="musicBtn" class="music-btn" title="Music" aria-pressed="false">♪</button>
+
     <script src="/socket.io/socket.io.js"></script>
     <script src="client.js"></script>
 </body>

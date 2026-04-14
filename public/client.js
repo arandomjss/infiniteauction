@@ -45,6 +45,19 @@ const overlay = document.getElementById('overlay');
 const overlayTitle = document.getElementById('overlayTitle');
 const overlayMessage = document.getElementById('overlayMessage');
 
+// DOM Elements - Rules
+const rulesBtn = document.getElementById('rulesBtn');
+const rulesModal = document.getElementById('rulesModal');
+const closeRulesBtn = document.getElementById('closeRulesBtn');
+const rulesTabsNav = document.querySelector('.rules-tabs');
+const rulesTabs = document.querySelectorAll('.rules-tab');
+const rulesSections = document.querySelectorAll('.rules-section');
+const rulesQuickToggle = document.getElementById('rulesQuickToggle');
+const rulesFullToggle = document.getElementById('rulesFullToggle');
+const rulesSelect = document.getElementById('rulesSelect');
+const rulesDragHandle = document.getElementById('rulesDragHandle');
+const musicBtn = document.getElementById('musicBtn');
+
 // State
 let currentRoom = null;
 let isHost = false;
@@ -407,10 +420,41 @@ socket.on('playerRejoined', (data) => {
 
 function updateLobbyList() {
     lobbyPlayerList.innerHTML = '';
-    playersState.forEach(p => {
+    // Determine host id from server-provided flag, fallback to local `isHost`
+    const hostFromServer = playersState.find(p => p.isHost);
+    const hostId = hostFromServer ? hostFromServer.id : (isHost ? myId : null);
+
+    // Show host first
+    const sorted = [...playersState].sort((a, b) => {
+        const aKey = (a.id === hostId) ? 1 : 0;
+        const bKey = (b.id === hostId) ? 1 : 0;
+        return bKey - aKey;
+    });
+
+    sorted.forEach(p => {
         if (!p.connected) return;
         const div = document.createElement('div');
-        div.textContent = p.name;
+        div.className = 'lobby-player';
+
+        const nameSpan = document.createElement('span');
+        nameSpan.textContent = p.name;
+        nameSpan.className = 'lobby-player-name';
+        div.appendChild(nameSpan);
+
+        if (p.id === hostId) {
+            const hostBadge = document.createElement('span');
+            hostBadge.className = 'host-badge';
+            hostBadge.textContent = (p.id === myId) ? 'You (Host)' : 'Host';
+            div.appendChild(hostBadge);
+        }
+
+        if (p.isSpectator) {
+            const specBadge = document.createElement('span');
+            specBadge.className = 'spectator-badge';
+            specBadge.textContent = 'Spectator';
+            div.appendChild(specBadge);
+        }
+
         lobbyPlayerList.appendChild(div);
     });
 }
@@ -467,4 +511,175 @@ function showOverlay(title, message) {
     overlayTitle.textContent = title;
     overlayMessage.textContent = message;
     overlay.classList.remove('hidden');
+}
+// --- RULES MODAL (Tabbed) ---
+function openRules() {
+    if (!rulesModal) return;
+    rulesModal.classList.remove('hidden');
+    rulesModal.setAttribute('aria-hidden', 'false');
+
+    // Default view depends on the toggle state
+    if (rulesQuickToggle && rulesQuickToggle.classList.contains('active')) {
+        showQuickView();
+    } else {
+        showFullView();
+    }
+
+    // Focus first control for accessibility
+    const firstControl = rulesModal.querySelector('.rules-content button, .rules-content a');
+    if (firstControl) firstControl.focus();
+    // Mobile specific: lock background scroll and mark mobile-open
+    if (window.innerWidth <= 680) {
+        rulesModal.classList.add('mobile-open');
+        document.body.style.overflow = 'hidden';
+        if (rulesBtn) rulesBtn.style.display = 'none';
+    }
+}
+
+function closeRules() {
+    if (!rulesModal) return;
+    rulesModal.classList.add('hidden');
+    rulesModal.setAttribute('aria-hidden', 'true');
+    // restore scrolling and button visibility
+    if (rulesModal.classList.contains('mobile-open')) {
+        rulesModal.classList.remove('mobile-open');
+        document.body.style.overflow = '';
+        if (rulesBtn) rulesBtn.style.display = '';
+    }
+}
+
+function showTab(tab) {
+    // Activate the tab button
+    document.querySelectorAll('.rules-tab').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.tab === tab);
+        btn.setAttribute('aria-selected', btn.dataset.tab === tab ? 'true' : 'false');
+    });
+
+    // Show the matching section
+    document.querySelectorAll('.rules-section').forEach(sec => {
+        sec.classList.toggle('hidden', sec.id !== `tab-${tab}`);
+    });
+}
+
+function showQuickView() {
+    if (rulesTabsNav) rulesTabsNav.classList.add('hidden');
+    if (rulesQuickToggle) {
+        rulesQuickToggle.classList.add('active');
+        rulesQuickToggle.setAttribute('aria-pressed', 'true');
+    }
+    if (rulesFullToggle) {
+        rulesFullToggle.classList.remove('active');
+        rulesFullToggle.setAttribute('aria-pressed', 'false');
+    }
+    showTab('quick');
+}
+
+function showFullView() {
+    if (rulesTabsNav) rulesTabsNav.classList.remove('hidden');
+    if (rulesFullToggle) {
+        rulesFullToggle.classList.add('active');
+        rulesFullToggle.setAttribute('aria-pressed', 'true');
+    }
+    if (rulesQuickToggle) {
+        rulesQuickToggle.classList.remove('active');
+        rulesQuickToggle.setAttribute('aria-pressed', 'false');
+    }
+    showTab('overview');
+}
+
+if (rulesBtn) rulesBtn.addEventListener('click', openRules);
+if (closeRulesBtn) closeRulesBtn.addEventListener('click', closeRules);
+
+// Tab clicks
+document.querySelectorAll('.rules-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+        // switch to full mode whenever a specific tab is chosen
+        if (rulesFullToggle) rulesFullToggle.classList.add('active');
+        if (rulesQuickToggle) rulesQuickToggle.classList.remove('active');
+        if (rulesTabsNav) rulesTabsNav.classList.remove('hidden');
+        showTab(btn.dataset.tab);
+    });
+});
+
+// Quick/Full toggles
+if (rulesQuickToggle) rulesQuickToggle.addEventListener('click', showQuickView);
+if (rulesFullToggle) rulesFullToggle.addEventListener('click', showFullView);
+
+// Mobile: rules select (visible on small screens)
+if (rulesSelect) {
+    rulesSelect.addEventListener('change', (e) => {
+        const tab = e.target.value;
+        showFullView();
+        showTab(tab);
+    });
+}
+
+// Swipe-down to close using the drag handle
+let touchStartY = 0;
+let touchStartX = 0;
+if (rulesDragHandle) {
+    rulesDragHandle.addEventListener('touchstart', (e) => {
+        touchStartY = e.touches[0].clientY;
+        touchStartX = e.touches[0].clientX;
+    }, { passive: true });
+
+    rulesDragHandle.addEventListener('touchend', (e) => {
+        const touchEndY = e.changedTouches[0].clientY;
+        const touchEndX = e.changedTouches[0].clientX;
+        if ((touchEndY - touchStartY) > 50 && Math.abs(touchEndX - touchStartX) < 60) {
+            closeRules();
+        }
+    });
+}
+
+// Close when clicking outside the content
+if (rulesModal) {
+    rulesModal.addEventListener('click', (e) => {
+        if (e.target === rulesModal) closeRules();
+    });
+}
+
+// Close with Escape
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && rulesModal && !rulesModal.classList.contains('hidden')) {
+        closeRules();
+    }
+});
+
+// --- MUSIC TOGGLE ---
+if (musicBtn) {
+    const savedMusic = localStorage.getItem('infiniteAuctionMusic') === '1';
+    if (savedMusic) {
+        musicBtn.classList.add('playing');
+        musicBtn.setAttribute('aria-pressed', 'true');
+        musicBtn.title = 'Music: On';
+        // Start music on next user gesture to satisfy autoplay policies
+        const resumeAndStart = async () => {
+            try {
+                await window.AudioManager.init();
+                await window.AudioManager.startBackgroundMusic();
+            } catch (e) {}
+            document.removeEventListener('click', resumeAndStart);
+        };
+        document.addEventListener('click', resumeAndStart, { once: true });
+    }
+
+    musicBtn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        try { await window.AudioManager.init(); } catch (e) {}
+        const isPlaying = musicBtn.classList.contains('playing');
+        if (isPlaying) {
+            try { window.AudioManager.stopBackgroundMusic(); } catch (e) {}
+            musicBtn.classList.remove('playing');
+            musicBtn.setAttribute('aria-pressed', 'false');
+            musicBtn.title = 'Music: Off';
+            localStorage.setItem('infiniteAuctionMusic', '0');
+        } else {
+            try { window.AudioManager.startBackgroundMusic(); } catch (e) {}
+            musicBtn.classList.add('playing');
+            musicBtn.setAttribute('aria-pressed', 'true');
+            musicBtn.title = 'Music: On';
+            localStorage.setItem('infiniteAuctionMusic', '1');
+        }
+    });
 }

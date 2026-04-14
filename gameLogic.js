@@ -99,7 +99,18 @@ function handleConnection(io) {
             };
 
             socket.join(room.roomId);
-            io.to(room.roomId).emit('playerJoined', Object.values(room.players));
+            // Emit a public player list with host flag included
+            const publicPlayers = Object.values(room.players).map(p => ({
+                id: p.id,
+                name: p.name,
+                points: p.points,
+                connected: p.connected,
+                isBankrupted: p.isBankrupted,
+                isSpectator: p.isSpectator,
+                isHost: room.host === p.id
+            }));
+
+            io.to(room.roomId).emit('playerJoined', publicPlayers);
             callback({ roomId: room.roomId, isHost: false, sessionId: sessionId });
         });
 
@@ -131,8 +142,18 @@ function handleConnection(io) {
                         }
 
                         // Tell the room they're back
+                        const publicPlayers = Object.values(room.players).map(pp => ({
+                            id: pp.id,
+                            name: pp.name,
+                            points: pp.points,
+                            connected: pp.connected,
+                            isBankrupted: pp.isBankrupted,
+                            isSpectator: pp.isSpectator,
+                            isHost: room.host === pp.id
+                        }));
+
                         io.to(room.roomId).emit('playerRejoined', {
-                            players: Object.values(room.players),
+                            players: publicPlayers,
                             rejoinedPlayerId: socket.id
                         });
 
@@ -142,7 +163,7 @@ function handleConnection(io) {
                             roomId: room.roomId,
                             isHost: room.host === socket.id,
                             gameState: room.gameState,
-                            players: Object.values(room.players),
+                            players: publicPlayers,
                             stats: { points: p.points, totalSpent: p.totalSpent, currentBid: p.currentBid },
                             roundInfo: { round: room.currentRound, gemValue: room.currentGem, timer: room.timer }
                         });
@@ -300,14 +321,16 @@ function processBids(room) {
         winner.points += room.currentGem;
         winner.totalSpent += winner.currentBid;
         winningSpendAdded = winner.currentBid;
-        resultMessage = `${winner.name} won the Gem (+${room.currentGem}) for $${winner.currentBid}!`;
+        // Do NOT reveal bid amounts in public messages — keep spend private
+        resultMessage = `${winner.name} won the Gem (+${room.currentGem})!`;
     } else {
         // High Tie: Cancel Gem, but they still pay
         highestBidders.forEach(p => {
             p.totalSpent += p.currentBid; // Both players add full bid
         });
         const names = highestBidders.map(p => p.name).join(' & ');
-        resultMessage = `HIGH TIE! ${names} cancelled the Gem, but paid $${highestBidValue} each!`;
+        // Do NOT reveal tie bid amounts publicly
+        resultMessage = `HIGH TIE! ${names} cancelled the Gem and paid their bids!`;
         winningSpendAdded = highestBidValue * highestBidders.length;
     }
 
@@ -343,7 +366,8 @@ function endBidding(io, room) {
         name: p.name,
         points: p.points,
         connected: p.connected,
-        isBankrupted: p.isBankrupted
+        isBankrupted: p.isBankrupted,
+        isHost: room.host === p.id
     }));
 
     io.to(room.roomId).emit('roundResult', {
@@ -414,7 +438,8 @@ function executeThePunch(io, room) {
         points: p.points,
         totalSpent: p.totalSpent,
         isBankrupted: p.isBankrupted,
-        isWinner: winner && winner.id === p.id
+        isWinner: winner && winner.id === p.id,
+        isHost: room.host === p.id
     }));
 
     io.to(room.roomId).emit('thePunch', {
@@ -430,6 +455,19 @@ function handleHostMigration(io, room, disconnectedId, roomId) {
         if (nextHost) {
             room.host = nextHost.id;
             io.to(nextHost.id).emit('hostMigrated');
+
+            // Broadcast updated player list so everyone sees who is host now
+            const publicPlayers = Object.values(room.players).map(p => ({
+                id: p.id,
+                name: p.name,
+                points: p.points,
+                connected: p.connected,
+                isBankrupted: p.isBankrupted,
+                isSpectator: p.isSpectator,
+                isHost: room.host === p.id
+            }));
+
+            io.to(room.roomId).emit('playerJoined', publicPlayers);
             console.log(`Host migrated to ${nextHost.id} for room ${roomId}`);
         } else {
             // Room is empty, clean it up after a delay

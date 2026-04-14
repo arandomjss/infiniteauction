@@ -191,6 +191,33 @@ input:focus {
     gap: 10px;
 }
 
+/* Lobby player list badges */
+.lobby-player {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 0;
+    color: var(--text-primary);
+}
+.lobby-player-name {
+    font-weight: 700;
+}
+.host-badge {
+    background: var(--accent);
+    color: #fff;
+    padding: 4px 8px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 800;
+}
+.spectator-badge {
+    background: var(--surface-light);
+    color: var(--text-secondary);
+    padding: 4px 8px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+}
+
 .player-item {
     background: var(--surface-light);
     padding: 10px;
@@ -397,6 +424,308 @@ input:focus {
     padding: 20px;
     border: 1px solid var(--border);
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+}
+
+/* RULES MODAL & BUTTON */
+.rules-btn {
+    position: fixed;
+    right: 18px;
+    bottom: 18px;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    font-weight: 900;
+    font-size: 1.25rem;
+    border: none;
+    box-shadow: 0 6px 18px rgba(255,42,42,0.2);
+    cursor: pointer;
+    z-index: 210;
+}
+
+/* MUSIC TOGGLE BUTTON */
+.music-btn {
+    position: fixed;
+    left: 18px;
+    bottom: 18px;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--surface-light);
+    color: var(--text-primary);
+    font-weight: 700;
+    font-size: 1.05rem;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.35);
+    cursor: pointer;
+    z-index: 210;
+}
+.music-btn.playing {
+    background: var(--accent);
+    color: #fff;
+    box-shadow: 0 8px 24px rgba(255,42,42,0.22);
+    transform: scale(1.02);
+}
+
+.rules-modal {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.6);
+    z-index: 200;
+    padding: 20px;
+}
+
+.rules-content {
+    width: 100%;
+    max-width: 680px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    color: var(--text-primary);
+    animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+/* anchor for absolute close button */
+.rules-content {
+    position: relative;
+}
+
+.rules-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+.rules-header .btn-small {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: none;
+    background: var(--surface-light);
+    color: var(--text-primary);
+    cursor: pointer;
+}
+
+/* Compact close icon (inline in header to avoid overlap) */
+.rules-close {
+    position: relative;
+    margin-left: 8px;
+    min-width: 36px;
+    min-height: 36px;
+    border-radius: 8px;
+    background: var(--surface-light);
+    color: var(--text-primary);
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+}
+.rules-close:focus {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+.rules-body {
+    color: var(--text-secondary);
+    font-size: 1rem;
+}
+
+.rules-body ol {
+    margin-left: 1rem;
+    margin-top: 8px;
+}
+
+.rules-modal.hidden {
+    display: none !important;
+}
+
+/* Tabs and controls for the rules modal */
+.rules-tabs {
+    display: flex;
+    gap: 8px;
+    /* prefer single-row horizontally scrollable tabs to avoid wrapping */
+    flex-wrap: nowrap;
+    margin-bottom: 12px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+.rules-tab {
+    background: var(--surface-light);
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+    padding: 8px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+}
+.rules-tab {
+    white-space: nowrap;
+    flex: 0 0 auto;
+}
+.rules-tab.active {
+    background: var(--accent);
+    color: #fff;
+    box-shadow: 0 6px 18px rgba(255,42,42,0.12);
+}
+.rules-body {
+    max-height: 50vh;
+    overflow-y: auto;
+    padding-right: 6px;
+}
+.rules-section {
+    display: block;
+}
+.rules-section.hidden {
+    display: none;
+}
+.rules-controls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+/* ensure controls stay inside header and push to the right */
+.rules-controls { margin-left: auto; }
+.rule-toggle {
+    padding: 6px 10px;
+    border-radius: 8px;
+    background: var(--surface-light);
+    border: none;
+    color: var(--text-primary);
+    cursor: pointer;
+    font-weight: 700;
+}
+.rule-toggle.active {
+    background: var(--accent);
+    color: #fff;
+}
+.rules-content h3 {
+    margin-top: 0;
+    color: var(--text-primary);
+}
+
+@media (min-width: 768px) {
+    .rules-body {
+        max-height: 60vh;
+    }
+}
+
+/* Mobile-first adjustments */
+.rules-select {
+    display: none; /* shown only on small screens */
+    padding: 8px;
+    background: var(--surface-light);
+    color: var(--text-primary);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+}
+
+.drag-handle {
+    width: 48px;
+    height: 6px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 4px;
+    margin: 8px auto 0;
+}
+
+/* Floating rules button: center bottom on mobile for thumb reach */
+.rules-btn {
+    position: fixed;
+    right: 18px;
+    bottom: 18px;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    font-weight: 900;
+    font-size: 1.25rem;
+    border: none;
+    box-shadow: 0 6px 18px rgba(255,42,42,0.2);
+    cursor: pointer;
+    z-index: 210;
+}
+
+@media (max-width: 680px) {
+    /* bottom-centered button for thumbs */
+    .rules-btn {
+        left: 50%;
+        right: auto;
+        transform: translateX(-50%);
+        width: 56px;
+        height: 56px;
+        bottom: calc(12px + env(safe-area-inset-bottom));
+        font-size: 1.1rem;
+    }
+
+    /* bottom-sheet style modal */
+    .rules-modal {
+        align-items: flex-end;
+        background: rgba(0,0,0,0.5);
+    }
+
+    .rules-content {
+        width: 100%;
+        max-width: 100%;
+        border-radius: 12px 12px 0 0;
+        padding-bottom: calc(12px + env(safe-area-inset-bottom));
+        max-height: 80vh;
+    }
+
+    /* hide full tab bar on narrow screens and show compact select */
+    .rules-tabs {
+        display: none !important; /* ensure it's removed on small screens */
+    }
+
+    .rules-select {
+        display: block;
+        margin-right: 8px;
+        min-width: 0;
+        max-width: 150px;
+        flex: 0 0 auto;
+    }
+
+    /* hide Quick/Full toggles on tiny screens to save space; keep Close visible */
+    .rule-toggle { display: none; }
+
+    /* larger close target on narrow screens */
+    .rules-close {
+        min-width: 44px;
+        min-height: 44px;
+        font-size: 1.25rem;
+        border-radius: 10px;
+    }
+
+    .rules-header {
+        padding: 12px 14px;
+    }
+
+    .rules-body {
+        padding: 8px 14px 16px;
+        max-height: calc(80vh - 120px);
+    }
+
+    /* larger tap targets */
+    input, .input-field {
+        padding: 16px;
+        font-size: 1.05rem;
+    }
+    .btn {
+        padding: 14px;
+        font-size: 1.05rem;
+    }
+    .bid-input { font-size: 2rem; padding: 14px; }
 }
 
 .glow-red {
